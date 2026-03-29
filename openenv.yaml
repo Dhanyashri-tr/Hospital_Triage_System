@@ -1,0 +1,26 @@
+name: hospital-triage-env
+description: AI-powered hospital triage system simulating real-world patient prioritization.
+
+entry_point: env:HospitalEnv
+
+tasks:
+  - name: easy
+    description: Handle basic triage decisions based on severity.
+  
+  - name: medium
+    description: Handle triage with resource constraints.
+  
+  - name: hard
+    description: Full hospital triage with severity, wait time, and resource optimization.
+
+actions:
+  - treat_now
+  - delay
+  - refer
+
+observation_space:
+  severity: int
+  waiting_time: int
+  age: int
+  resources_available: int
+  condition: str
