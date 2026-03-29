@@ -21,3 +21,30 @@ def step(action: str = "treat_now"):
         "reward": reward,
         "done": done
     }
+@app.get("/simulate")
+def simulate():
+    state = env.reset()
+    action = "treat_now"
+    next_state, reward, done = env.step(action)
+
+    return {
+        "initial_state": state,
+        "action_taken": action,
+        "next_state": next_state,
+        "reward": reward,
+        "done": done
+    }
+def smart_agent(state):
+    if state["severity"] > 7:
+        return "treat_now"
+    elif state["waiting_time"] > 30:
+        return "treat_now"
+    else:
+        return "wait"
+def explain_decision(state):
+    if state["severity"] > 7:
+        return "Critical patient — immediate care needed"
+    elif state["waiting_time"] > 30:
+        return "Patient waiting too long — prioritize"
+    else:
+        return "Patient stable — can wait"
