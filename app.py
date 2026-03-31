@@ -127,21 +127,37 @@ def simulate(name, severity, waiting_time, age, resources, condition):
 
     <p><b>Reason:</b> {explain_decision(state)}</p>
     <h3>Priority Meter</h3>
-    <div style="background-color:#222; border-radius:12px; overflow:hidden; box-shadow:0 0 10px rgba(0,0,0,0.5);">
+<div style="
+    background:#1a1a1a;
+    border-radius:20px;
+    padding:6px;
+    box-shadow: { '0 0 10px #00ff87' if priority_score < 15 else 
+              '0 0 10px #ffd200' if priority_score < 25 else 
+              '0 0 20px #ff4b2b' };
+">
+
     <div style="
         width:{meter_width}%;
-        padding:10px;
-        text-align:center;
-        color:white;
+        height:25px;
+        border-radius:20px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
         font-weight:bold;
-        border-radius:12px;
-        background: { 'linear-gradient(90deg, #00ff87, #60efff)' if priority_score < 15 else 
-                      'linear-gradient(90deg, #f7971e, #ffd200)' if priority_score < 25 else 
-                      'linear-gradient(90deg, #ff416c, #ff4b2b)' };
-        transition: width 0.6s ease-in-out;
+        color:white;
+
+        background: { 
+            'linear-gradient(90deg, #00ff87, #60efff)' if priority_score < 15 else 
+            'linear-gradient(90deg, #f7971e, #ffd200)' if priority_score < 25 else 
+            'linear-gradient(90deg, #ff416c, #ff4b2b)' 
+        };
+
+        box-shadow: 0 0 15px rgba(255, 75, 43, 0.6);
+        transition: all 0.6s ease-in-out;
     ">
-        {priority_score}
+        ⚡ {priority_score}
     </div>
+
 </div>
     </div>
     """
