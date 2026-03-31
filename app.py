@@ -49,3 +49,37 @@ def explain_decision(state):
         return "Patient has been waiting too long - prioritize treatment"
     else:
         return "Patient is stable - can safely wait"
+import gradio as gr
+
+def run_simulation(severity, waiting_time, age, condition):
+    state = {
+        "severity": severity,
+        "waiting_time": waiting_time,
+        "age": age,
+        "resources_available": 1,
+        "condition": condition
+    }
+
+    action = smart_agent(state)
+    next_state, reward, done = env.step(action)
+
+    return action, reward, explain_decision(state)
+
+
+iface = gr.Interface(
+    fn=run_simulation,
+    inputs=[
+        gr.Slider(0, 10, label="Severity"),
+        gr.Slider(0, 60, label="Waiting Time"),
+        gr.Slider(0, 100, label="Age"),
+        gr.Textbox(label="Condition")
+    ],
+    outputs=[
+        gr.Textbox(label="Action"),
+        gr.Number(label="Reward"),
+        gr.Textbox(label="Reason")
+    ],
+    title="Hospital Triage AI System"
+)
+
+iface.launch()
