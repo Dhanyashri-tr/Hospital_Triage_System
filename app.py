@@ -5,6 +5,7 @@ from datetime import datetime
 env = HospitalEnv()
 
 def simulate(name, severity, waiting_time, age, resources, condition):
+    name = name.strip().title()
     state = env.reset()
 
     # override values
