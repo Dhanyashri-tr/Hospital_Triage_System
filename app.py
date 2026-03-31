@@ -6,7 +6,12 @@ env = HospitalEnv()
 
 def simulate(name, severity, waiting_time, age, resources, condition):
     name = name.strip().title()
-    
+
+    if resources == "Available":
+        resources = 1
+    else:
+        resources = 0
+
     # convert condition text to numeric severity
     if severity == "Mild pain":
         severity = 2
@@ -17,6 +22,8 @@ def simulate(name, severity, waiting_time, age, resources, condition):
     elif severity == "Unconscious":
         severity = 10
     state = env.reset()
+    # convert resource input to numeric
+    
 
     # override values
     state["severity"] = severity
@@ -184,6 +191,8 @@ def simulate(name, severity, waiting_time, age, resources, condition):
     """
 
 def smart_agent(state, priority_score):
+    if state["resources_available"] == 0:
+        return "WAIT"
 
     if priority_score >= 25:
         return "TREAT_NOW"
@@ -215,7 +224,7 @@ interface = gr.Interface(
     ),
         gr.Slider(0, 60, label="Waiting Time (minutes)"),
         gr.Slider(0, 100, label="Age"),
-        gr.Slider(0, 5, label="Resources Available"),
+        gr.Radio(["Available", "Not Available"], label="Resources"),
         gr.Textbox(label="Condition (fever/injury/etc)")
     ],
     outputs=gr.HTML(),
