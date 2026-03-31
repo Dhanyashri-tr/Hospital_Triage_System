@@ -91,7 +91,7 @@ def simulate(name, severity, waiting_time, age, resources, condition):
     # priority meter
     meter_width = min(priority_score * 3, 100)
 
-    action = smart_agent(state)
+    action = smart_agent(state, priority_score)
     next_state, reward, done = env.step(action)
 
     return f"""
@@ -125,7 +125,7 @@ def simulate(name, severity, waiting_time, age, resources, condition):
 
     <p><b>Reward:</b> {reward}</p>
 
-    <p><b>Reason:</b> {explain_decision(state)}</p>
+    <p><b>Reason:</b> {explain_decision(priority_score)}</p>
     <h3>Priority Meter</h3>
 <div style="
     background:#1a1a1a;
@@ -162,32 +162,25 @@ def simulate(name, severity, waiting_time, age, resources, condition):
     </div>
     """
 
-def smart_agent(state):
-    if state["severity"] >= 9:
-        return "treat_now"
-    elif state["condition"] in ["cardiac", "stroke", "accident"]:
-        return "treat_now"
-    elif state["waiting_time"] > 30:
-        return "monitor"
-    else:
-        return "wait"
+def smart_agent(state, priority_score):
 
-def explain_decision(state):
-    if state["severity"] >= 9:
-        return "Critical severity → immediate treatment required"
-    
-    elif state["condition"] in ["cardiac", "stroke", "accident"]:
-        return "Life-threatening condition → prioritized treatment"
-    
-    elif state["age"] > 65 and state["severity"] > 5:
-        return "Elderly patient with moderate risk → prioritized"
-    
-    elif state["resources_available"] == 0:
-        return "No resources available → patient must wait"
-    
-    elif state["waiting_time"] > 30:
-        return "Patient waited too long → prioritized"
-    
+    if priority_score >= 25:
+        return "TREAT_NOW"
+
+    elif priority_score >= 15:
+        return "MONITOR"
+
+    else:
+        return "WAIT"
+
+def explain_decision(priority_score):
+
+    if priority_score >= 25:
+        return "Critical condition → immediate treatment required"
+
+    elif priority_score >= 15:
+        return "Moderate risk → needs monitoring"
+
     else:
         return "Stable condition → safe to wait"
 
