@@ -87,6 +87,10 @@ def simulate(name, severity, waiting_time, age, resources, condition):
 
     # Timestamp
     timestamp = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+
+    # priority meter
+    meter_width = min(priority_score * 3, 100)
+
     action = smart_agent(state)
     next_state, reward, done = env.step(action)
 
@@ -113,6 +117,7 @@ def simulate(name, severity, waiting_time, age, resources, condition):
     <p><b>⚠️ Risk Factors:</b> {risk_text}</p>
     <p><b>   Department:</b> {dept}</p>
     <p><b>⏳ Estimated Wait:</b> {wait_msg}</p>
+    
 
     <h3 style="color:{'red' if action=='treat_now' else 'green'};">
        Decision: {action.upper()}
@@ -121,10 +126,17 @@ def simulate(name, severity, waiting_time, age, resources, condition):
     <p><b>Reward:</b> {reward}</p>
 
     <p><b>Reason:</b> {explain_decision(state)}</p>
-
+    <h3>Priority Meter</h3>
     <div style="width:100%;background:#ddd;">
-    <div style="width:{min(priority_score*3,100)}%;background:red;color:white;">
-        Priority Meter
+    <div style="background-color:#333; border-radius:10px; overflow:hidden;">
+        <div style="
+            width:{meter_width}%;
+            background-color:red;
+            padding:8px;
+            text-align:center;
+            color:white;">
+            {priority_score}
+        </div>
     </div>
     </div>
     """
