@@ -28,12 +28,13 @@ def simulate():
     next_state, reward, done = env.step(action)
 
     return {
-        "initial_state": state,
-        "action_taken": action,
-        "next_state": next_state,
-        "reward": reward,
-        "done": done
-    }
+    "initial_state": state,
+    "action_taken": action,
+    "next_state": next_state,
+    "reward": reward,
+    "done": done,
+    "reason": explain_decision(state)
+}
 def smart_agent(state):
     if state["severity"] > 7:
         return "treat_now"
