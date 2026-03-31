@@ -92,7 +92,7 @@ def simulate(name, severity, waiting_time, age, resources, condition):
     meter_width = min(priority_score * 3, 100)
 
     action = smart_agent(state, priority_score)
-    next_state, reward, done = env.step(action)
+    next_state, reward, done = env.step(action, priority_score)
 
     return f"""
     <h2>👤 Patient: {name}</h2>
@@ -110,7 +110,7 @@ def simulate(name, severity, waiting_time, age, resources, condition):
     </ul>
 
     <h3 style="color:purple;">🔥 Priority Score: {priority_score}</h3>
-    <h3>📊 Priority Level: {level}</h3>
+    <h3>  Priority Level: {level}</h3>
 
     <h3 style="color:red;">{alert}</h3>
 
