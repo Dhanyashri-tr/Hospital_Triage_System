@@ -26,6 +26,16 @@ def simulate(name, severity, waiting_time, age, resources, condition):
         level = "🟡 Moderate"
     else:
         level = "🟢 Safe"
+    if priority_score >= 25:
+        color = "#ff3b3b"   # red
+    elif priority_score >= 15:
+        color = "#ffaa00"   # orange
+    else:
+        color = "#00c853"   # green
+        
+    max_score = 50  # expected max priority
+    percentage = (priority_score / max_score) * 100
+
     condition = state["condition"].lower().strip()
 
     if condition == "cardiac":
@@ -138,7 +148,7 @@ def simulate(name, severity, waiting_time, age, resources, condition):
 ">
 
     <div style="
-        width:{meter_width}%;
+        width: {percentage}%;
         height:25px;
         border-radius:20px;
         display:flex;
