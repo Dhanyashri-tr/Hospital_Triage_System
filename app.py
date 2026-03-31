@@ -17,26 +17,50 @@ def simulate(severity, waiting_time, age, resources, condition):
     next_state, reward, done = env.step(action)
 
     return f"""
-Action: {action}
-Reward: {reward}
-Decision: {explain_decision(state)}
+  Patient Summary:
+- Severity: {state["severity"]}
+- Waiting Time: {state["waiting_time"]} minutes
+- Age: {state["age"]}
+- Condition: {state["condition"]}
+
+    Decision: {action}
+    Reward: {reward}
+
+    Reason:
+{explain_decision(state)}
 """
 
 def smart_agent(state):
-    if state["severity"] > 7:
+    if state["severity"] > 8:
         return "treat_now"
+    
+    elif state["condition"] in ["cardiac", "accident", "stroke"]:
+        return "treat_now"
+    
+    elif state["age"] > 65 and state["severity"] > 5:
+        return "treat_now"
+    
     elif state["waiting_time"] > 30:
         return "treat_now"
+    
     else:
         return "wait"
 
 def explain_decision(state):
-    if state["severity"] > 7:
-        return "Critical patient → immediate treatment"
+    if state["severity"] > 8:
+        return "Critical condition → immediate treatment required"
+    
+    elif state["condition"] in ["cardiac", "accident", "stroke"]:
+        return "High-risk condition → prioritized treatment"
+    
+    elif state["age"] > 65 and state["severity"] > 5:
+        return "Elderly patient with risk → prioritized"
+    
     elif state["waiting_time"] > 30:
-        return "Waited too long → prioritize"
+        return "Long waiting time → prioritized"
+    
     else:
-        return "Stable → can wait"
+        return "Stable condition → safe to wait"
 
 interface = gr.Interface(
     fn=simulate,
