@@ -43,8 +43,8 @@ def smart_agent(state):
         return "wait"
 def explain_decision(state):
     if state["severity"] > 7:
-        return "Critical patient — immediate care needed"
+        return "Critical patient - requires immediate treatment"
     elif state["waiting_time"] > 30:
-        return "Patient waiting too long — prioritize"
+        return "Patient has been waiting too long - prioritize treatment"
     else:
-        return "Patient stable — can wait"
+        return "Patient is stable - can safely wait"
