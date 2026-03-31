@@ -106,7 +106,7 @@ def simulate(name, severity, waiting_time, age, resources, condition):
     <li><b>Severity:</b> {state["severity"]}</li>
     <li><b>Waiting Time:</b> {state["waiting_time"]} minutes</li>
     <li><b>Age:</b> {state["age"]}</li>
-    <li><b>Condition:</b>Condition: {emoji} {state["condition"]}</li>
+    <li>Condition: {emoji} {state["condition"]}</li>
     </ul>
 
     <h3 style="color:purple;">🔥 Priority Score: {priority_score}</h3>
@@ -127,17 +127,22 @@ def simulate(name, severity, waiting_time, age, resources, condition):
 
     <p><b>Reason:</b> {explain_decision(state)}</p>
     <h3>Priority Meter</h3>
-    <div style="width:100%;background:#ddd;">
-    <div style="background-color:#333; border-radius:10px; overflow:hidden;">
-        <div style="
-            width:{meter_width}%;
-            background-color:red;
-            padding:8px;
-            text-align:center;
-            color:white;">
-            {priority_score}
-        </div>
+    <div style="background-color:#222; border-radius:12px; overflow:hidden; box-shadow:0 0 10px rgba(0,0,0,0.5);">
+    <div style="
+        width:{meter_width}%;
+        padding:10px;
+        text-align:center;
+        color:white;
+        font-weight:bold;
+        border-radius:12px;
+        background: { 'linear-gradient(90deg, #00ff87, #60efff)' if priority_score < 15 else 
+                      'linear-gradient(90deg, #f7971e, #ffd200)' if priority_score < 25 else 
+                      'linear-gradient(90deg, #ff416c, #ff4b2b)' };
+        transition: width 0.6s ease-in-out;
+    ">
+        {priority_score}
     </div>
+</div>
     </div>
     """
 
