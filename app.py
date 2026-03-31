@@ -4,13 +4,14 @@ from env import HospitalEnv
 env = HospitalEnv()
 
 def simulate(severity, waiting_time, age, resources, condition):
-    state = {
-        "severity": severity,
-        "waiting_time": waiting_time,
-        "age": age,
-        "resources_available": resources,
-        "condition": condition
-    }
+    state = env.reset()
+
+    # override values
+    state["severity"] = severity
+    state["waiting_time"] = waiting_time
+    state["age"] = age
+    state["resources_available"] = resources
+    state["condition"] = condition
 
     action = smart_agent(state)
     next_state, reward, done = env.step(action)
