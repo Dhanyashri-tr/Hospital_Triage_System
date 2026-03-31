@@ -25,12 +25,53 @@ def simulate(name, severity, waiting_time, age, resources, condition):
         level = "🟡 Moderate"
     else:
         level = "🟢 Safe"
-    if state["condition"] == "cardiac":
-        emoji = "❤️"
-    elif state["condition"] == "stroke":
-        emoji = "🧠"
+
+    # Alert Message
+    if level == "🔴 Critical":
+        alert = "🚨 Immediate ICU attention required!"
+    elif level == "🟡 Moderate":
+        alert = "⚠️ Needs attention soon"
     else:
-        emoji = "🩺"
+        alert = "✅ Safe to wait"
+
+    #  Risk Factors
+    risk_factors = []
+
+    if state["age"] > 60:
+        risk_factors.append("Elderly")
+
+    if state["severity"] > 7:
+        risk_factors.append("High Severity")
+
+    if state["waiting_time"] > 30:
+        risk_factors.append("Long Wait Time")
+
+    risk_text = ", ".join(risk_factors) if risk_factors else "None"
+
+    # Department Suggestion
+    if state["condition"] == "cardiac":
+        dept = "❤️ Cardiology"
+    elif state["condition"] == "stroke":
+        dept = "🧠 Neurology"
+    elif state["condition"] == "injury":
+        dept = "🦴 Orthopedics"
+    else:
+        dept = "🩺 General Medicine"
+
+    # Estimated Wait Time
+    if level == "🔴 Critical":
+        wait_msg = "Immediate"
+    elif level == "🟡 Moderate":
+        wait_msg = "Within 15 minutes"
+    else:
+        wait_msg = "30+ minutes"
+        if state["condition"] == "cardiac":
+            emoji = "❤️"
+        elif state["condition"] == "stroke":
+            emoji = "🧠"
+        else:
+            emoji = "🩺"
+
     # Patient ID 
     patient_id = f"P{int(state['severity']*100 + state['age'])}"
 
@@ -42,10 +83,10 @@ def simulate(name, severity, waiting_time, age, resources, condition):
     return f"""
     <h2>👤 Patient: {name}</h2>
 
-    <p><b>🆔 Patient ID:</b> {patient_id}</p>
-    <p><b>🕒 Time:</b> {timestamp}</p>
+    <p><b>  Patient ID:</b> {patient_id}</p>
+    <p><b>  Time:</b> {timestamp}</p>
 
-    <h3>🧾 Patient Summary</h3>
+    <h3>  Patient Summary</h3>
 
     <ul>
     <li><b>Severity:</b> {state["severity"]}</li>
@@ -55,34 +96,36 @@ def simulate(name, severity, waiting_time, age, resources, condition):
     </ul>
 
     <h3 style="color:purple;">🔥 Priority Score: {priority_score}</h3>
-
     <h3>📊 Priority Level: {level}</h3>
 
+    <h3 style="color:red;">{alert}</h3>
+
+    <p><b>⚠️ Risk Factors:</b> {risk_text}</p>
+    <p><b>   Department:</b> {dept}</p>
+    <p><b>⏳ Estimated Wait:</b> {wait_msg}</p>
+
     <h3 style="color:{'red' if action=='treat_now' else 'green'};">
-    🚑 Decision: {action.upper()}
+       Decision: {action.upper()}
     </h3>
 
     <p><b>Reward:</b> {reward}</p>
 
     <p><b>Reason:</b> {explain_decision(state)}</p>
+
+    <div style="width:100%;background:#ddd;">
+    <div style="width:{min(priority_score*3,100)}%;background:red;color:white;">
+        Priority Meter
+    </div>
+    </div>
     """
 
 def smart_agent(state):
     if state["severity"] >= 9:
         return "treat_now"
-    
     elif state["condition"] in ["cardiac", "stroke", "accident"]:
         return "treat_now"
-    
-    elif state["age"] > 65 and state["severity"] > 5:
-        return "treat_now"
-    
-    elif state["resources_available"] == 0:
-        return "wait"
-    
     elif state["waiting_time"] > 30:
-        return "treat_now"
-    
+        return "monitor"
     else:
         return "wait"
 
