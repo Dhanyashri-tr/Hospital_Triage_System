@@ -3,7 +3,7 @@ from env import HospitalEnv
 
 env = HospitalEnv()
 
-def simulate(severity, waiting_time, age, resources, condition):
+def simulate(name, severity, waiting_time, age, resources, condition):
     state = env.reset()
 
     # override values
@@ -18,24 +18,36 @@ def simulate(severity, waiting_time, age, resources, condition):
     (10 if state["condition"] in ["cardiac", "stroke"] else 0)
     )
     priority_score = round(priority_score, 2)
+    if state["condition"] == "cardiac":
+         emoji = "❤️"
+    elif state["condition"] == "stroke":
+         emoji = "🧠"
+    else:
+         emoji = "🩺"
     action = smart_agent(state)
     next_state, reward, done = env.step(action)
 
     return f"""
-  Patient Summary:
-- Severity: {state["severity"]}
-- Waiting Time: {state["waiting_time"]} minutes
-- Age: {state["age"]}
-- Condition: {state["condition"]}
+    <h2>👤 Patient: {name}</h2>
+    <h2>Patient Summary</h2>
 
-    Priority Score: {priority_score}
+    <ul>
+    <li><b>Severity:</b> {state["severity"]}</li>
+    <li><b>Waiting Time:</b> {state["waiting_time"]} minutes</li>
+    <li><b>Age:</b> {state["age"]}</li>
+    <li><b>Condition:</b> {emoji} {state["condition"]}</li>
+    </ul>
 
-    Decision: {action}
-    Reward: {reward}
+    <h3 style="color:purple;"> Priority Score: {priority_score}</h3>
 
-    Reason:
-{explain_decision(state)}
-"""
+    <h3 style="color:{'red' if action=='treat_now' else 'green'};">
+    Decision: {action.upper()}
+    </h3>
+
+    <p><b>Reward:</b> {reward}</p>
+
+    <p><b>Reason:</b> {explain_decision(state)}</p>
+    """
 
 def smart_agent(state):
     if state["severity"] >= 9:
@@ -78,14 +90,16 @@ def explain_decision(state):
 interface = gr.Interface(
     fn=simulate,
     inputs=[
+        gr.Textbox(label="Patient Name"),
         gr.Slider(0, 10, label="Severity"),
         gr.Slider(0, 60, label="Waiting Time (minutes)"),
         gr.Slider(0, 100, label="Age"),
         gr.Slider(0, 5, label="Resources Available"),
         gr.Textbox(label="Condition (fever/injury/etc)")
     ],
-    outputs="text",
-    title="🏥 Hospital Triage AI System"
+    outputs=gr.HTML(),
+    title="🏥 Hospital Triage AI System",
+    description="AI-powered patient prioritization system with explainable decisions"
 )
 
 interface.launch()
