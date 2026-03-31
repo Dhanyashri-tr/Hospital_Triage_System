@@ -1,5 +1,6 @@
 import gradio as gr
 from env import HospitalEnv
+from datetime import datetime
 
 env = HospitalEnv()
 
@@ -18,18 +19,33 @@ def simulate(name, severity, waiting_time, age, resources, condition):
     (10 if state["condition"] in ["cardiac", "stroke"] else 0)
     )
     priority_score = round(priority_score, 2)
-    if state["condition"] == "cardiac":
-         emoji = "❤️"
-    elif state["condition"] == "stroke":
-         emoji = "🧠"
+    if priority_score >= 25:
+        level = "🔴 Critical"
+    elif priority_score >= 15:
+        level = "🟡 Moderate"
     else:
-         emoji = "🩺"
+        level = "🟢 Safe"
+    if state["condition"] == "cardiac":
+        emoji = "❤️"
+    elif state["condition"] == "stroke":
+        emoji = "🧠"
+    else:
+        emoji = "🩺"
+    # Patient ID 
+    patient_id = f"P{int(state['severity']*100 + state['age'])}"
+
+    # Timestamp
+    timestamp = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
     action = smart_agent(state)
     next_state, reward, done = env.step(action)
 
     return f"""
     <h2>👤 Patient: {name}</h2>
-    <h2>Patient Summary</h2>
+
+    <p><b>🆔 Patient ID:</b> {patient_id}</p>
+    <p><b>🕒 Time:</b> {timestamp}</p>
+
+    <h3>🧾 Patient Summary</h3>
 
     <ul>
     <li><b>Severity:</b> {state["severity"]}</li>
@@ -38,10 +54,12 @@ def simulate(name, severity, waiting_time, age, resources, condition):
     <li><b>Condition:</b> {emoji} {state["condition"]}</li>
     </ul>
 
-    <h3 style="color:purple;"> Priority Score: {priority_score}</h3>
+    <h3 style="color:purple;">🔥 Priority Score: {priority_score}</h3>
+
+    <h3>📊 Priority Level: {level}</h3>
 
     <h3 style="color:{'red' if action=='treat_now' else 'green'};">
-    Decision: {action.upper()}
+    🚑 Decision: {action.upper()}
     </h3>
 
     <p><b>Reward:</b> {reward}</p>
