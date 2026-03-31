@@ -20,51 +20,28 @@ class HospitalEnv:
     def state(self):
         return self.state_data
 
-    def step(self, action):
-        s = self.state_data
-        reward = 0
+    def step(self, action, priority_score):
 
-        # EASY TASK
-        if self.task == "easy":
-            if action == "treat_now" and s["severity"] >= 7:
-                reward = 10
-            else:
-                reward = -5
+        s = self.state_data  # current state
 
-        # MEDIUM TASK
-        elif self.task == "medium":
-            if action == "treat_now" and s["severity"] >= 7:
-                reward = 10
-            elif action == "refer" and s["resources_available"] == 0:
-                reward = 6
-            else:
-                reward = -5
+        # Reward logic
+        if priority_score >= 25 and action == "TREAT_NOW":
+            reward = 10
 
-        # HARD TASK (BEST FOR JUDGES)
-        elif self.task == "hard":
-            if action == "treat_now":
-                if s["severity"] >= 8:
-                    reward = 10
-                elif s["severity"] >= 5:
-                    reward = 5
-                else:
-                    reward = -6
+        elif 15 <= priority_score < 25 and action == "MONITOR":
+            reward = 5
 
-            elif action == "delay":
-                if s["severity"] < 4:
-                    reward = 6
-                else:
-                    reward = -8
+        elif priority_score < 15 and action == "WAIT":
+            reward = 2
 
-            elif action == "refer":
-                if s["resources_available"] == 0:
-                    reward = 7
-                else:
-                    reward = -3
+        else:
+            reward = -5
 
-            # penalty for long wait
-            if s["waiting_time"] > 40:
-                reward -= 3
+        # penalty for long wait
+        if s["waiting_time"] > 40:
+            reward -= 3
 
         done = True
+
         return s, reward, done
+
