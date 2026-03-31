@@ -25,6 +25,16 @@ def simulate(name, severity, waiting_time, age, resources, condition):
         level = "🟡 Moderate"
     else:
         level = "🟢 Safe"
+    condition = state["condition"].lower().strip()
+
+    if condition == "cardiac":
+        emoji = "❤️"
+    elif condition == "stroke":
+        emoji = "🧠"
+    elif condition == "injury":
+        emoji = "🦴"
+    else:
+        emoji = "🩺"
 
     # Alert Message
     if level == "🔴 Critical":
@@ -92,7 +102,7 @@ def simulate(name, severity, waiting_time, age, resources, condition):
     <li><b>Severity:</b> {state["severity"]}</li>
     <li><b>Waiting Time:</b> {state["waiting_time"]} minutes</li>
     <li><b>Age:</b> {state["age"]}</li>
-    <li><b>Condition:</b> {emoji} {state["condition"]}</li>
+    <li><b>Condition:</b>Condition: {emoji} {state["condition"]}</li>
     </ul>
 
     <h3 style="color:purple;">🔥 Priority Score: {priority_score}</h3>
