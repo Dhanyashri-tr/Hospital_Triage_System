@@ -6,6 +6,16 @@ env = HospitalEnv()
 
 def simulate(name, severity, waiting_time, age, resources, condition):
     name = name.strip().title()
+    
+    # convert condition text to numeric severity
+    if severity == "Mild pain":
+        severity = 2
+    elif severity == "Moderate pain":
+        severity = 5
+    elif severity == "Severe pain":
+        severity = 8
+    elif severity == "Unconscious":
+        severity = 10
     state = env.reset()
 
     # override values
@@ -32,7 +42,7 @@ def simulate(name, severity, waiting_time, age, resources, condition):
         color = "#ffaa00"   # orange
     else:
         color = "#00c853"   # green
-        
+
     max_score = 50  # expected max priority
     percentage = (priority_score / max_score) * 100
 
@@ -199,7 +209,10 @@ interface = gr.Interface(
     fn=simulate,
     inputs=[
         gr.Textbox(label="Patient Name"),
-        gr.Slider(0, 10, label="Severity"),
+        gr.Dropdown(
+    ["Mild pain", "Moderate pain", "Severe pain", "Unconscious"],
+    label="Patient Condition Severity"
+    ),
         gr.Slider(0, 60, label="Waiting Time (minutes)"),
         gr.Slider(0, 100, label="Age"),
         gr.Slider(0, 5, label="Resources Available"),
