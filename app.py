@@ -12,7 +12,12 @@ def simulate(severity, waiting_time, age, resources, condition):
     state["age"] = age
     state["resources_available"] = resources
     state["condition"] = condition
-
+    priority_score = (
+    state["severity"] * 2 +
+    state["waiting_time"] * 0.5 +
+    (10 if state["condition"] in ["cardiac", "stroke"] else 0)
+    )
+    priority_score = round(priority_score, 2)
     action = smart_agent(state)
     next_state, reward, done = env.step(action)
 
@@ -23,6 +28,8 @@ def simulate(severity, waiting_time, age, resources, condition):
 - Age: {state["age"]}
 - Condition: {state["condition"]}
 
+    Priority Score: {priority_score}
+
     Decision: {action}
     Reward: {reward}
 
@@ -31,14 +38,17 @@ def simulate(severity, waiting_time, age, resources, condition):
 """
 
 def smart_agent(state):
-    if state["severity"] > 8:
+    if state["severity"] >= 9:
         return "treat_now"
     
-    elif state["condition"] in ["cardiac", "accident", "stroke"]:
+    elif state["condition"] in ["cardiac", "stroke", "accident"]:
         return "treat_now"
     
     elif state["age"] > 65 and state["severity"] > 5:
         return "treat_now"
+    
+    elif state["resources_available"] == 0:
+        return "wait"
     
     elif state["waiting_time"] > 30:
         return "treat_now"
@@ -47,17 +57,20 @@ def smart_agent(state):
         return "wait"
 
 def explain_decision(state):
-    if state["severity"] > 8:
-        return "Critical condition → immediate treatment required"
+    if state["severity"] >= 9:
+        return "Critical severity → immediate treatment required"
     
-    elif state["condition"] in ["cardiac", "accident", "stroke"]:
-        return "High-risk condition → prioritized treatment"
+    elif state["condition"] in ["cardiac", "stroke", "accident"]:
+        return "Life-threatening condition → prioritized treatment"
     
     elif state["age"] > 65 and state["severity"] > 5:
-        return "Elderly patient with risk → prioritized"
+        return "Elderly patient with moderate risk → prioritized"
+    
+    elif state["resources_available"] == 0:
+        return "No resources available → patient must wait"
     
     elif state["waiting_time"] > 30:
-        return "Long waiting time → prioritized"
+        return "Patient waited too long → prioritized"
     
     else:
         return "Stable condition → safe to wait"
