@@ -1,40 +1,26 @@
-from fastapi import FastAPI
+import gradio as gr
 from env import HospitalEnv
 
-app = FastAPI()
 env = HospitalEnv()
 
-@app.get("/")
-def home():
-    return {"message": "Hospital Triage Env Running"}
-
-@app.get("/reset")
-def reset():
-    state = env.reset(task="easy")
-    return state
-
-@app.get("/step")
-def step(action: str = "treat_now"):
-    state, reward, done = env.step(action)
-    return {
-        "state": state,
-        "reward": reward,
-        "done": done
+def simulate(severity, waiting_time, age, resources, condition):
+    state = {
+        "severity": severity,
+        "waiting_time": waiting_time,
+        "age": age,
+        "resources_available": resources,
+        "condition": condition
     }
-@app.get("/simulate")
-def simulate():
-    state = env.reset()
-    action = "treat_now"
+
+    action = smart_agent(state)
     next_state, reward, done = env.step(action)
 
-    return {
-    "initial_state": state,
-    "action_taken": action,
-    "next_state": next_state,
-    "reward": reward,
-    "done": done,
-    "reason": explain_decision(state)
-}
+    return f"""
+Action: {action}
+Reward: {reward}
+Decision: {explain_decision(state)}
+"""
+
 def smart_agent(state):
     if state["severity"] > 7:
         return "treat_now"
@@ -42,44 +28,26 @@ def smart_agent(state):
         return "treat_now"
     else:
         return "wait"
+
 def explain_decision(state):
     if state["severity"] > 7:
-        return "Critical patient - requires immediate treatment"
+        return "Critical patient → immediate treatment"
     elif state["waiting_time"] > 30:
-        return "Patient has been waiting too long - prioritize treatment"
+        return "Waited too long → prioritize"
     else:
-        return "Patient is stable - can safely wait"
-import gradio as gr
+        return "Stable → can wait"
 
-def run_simulation(severity, waiting_time, age, condition):
-    state = {
-        "severity": severity,
-        "waiting_time": waiting_time,
-        "age": age,
-        "resources_available": 1,
-        "condition": condition
-    }
-
-    action = smart_agent(state)
-    next_state, reward, done = env.step(action)
-
-    return action, reward, explain_decision(state)
-
-
-iface = gr.Interface(
-    fn=run_simulation,
+interface = gr.Interface(
+    fn=simulate,
     inputs=[
         gr.Slider(0, 10, label="Severity"),
-        gr.Slider(0, 60, label="Waiting Time"),
+        gr.Slider(0, 60, label="Waiting Time (minutes)"),
         gr.Slider(0, 100, label="Age"),
-        gr.Textbox(label="Condition")
+        gr.Slider(0, 5, label="Resources Available"),
+        gr.Textbox(label="Condition (fever/injury/etc)")
     ],
-    outputs=[
-        gr.Textbox(label="Action"),
-        gr.Number(label="Reward"),
-        gr.Textbox(label="Reason")
-    ],
-    title="Hospital Triage AI System"
+    outputs="text",
+    title="🏥 Hospital Triage AI System"
 )
 
-iface.launch()
+interface.launch()
