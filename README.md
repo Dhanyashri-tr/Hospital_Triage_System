@@ -1,9 +1,11 @@
+
+sdk: gradio
 ---
-title: Hospital Triage System
+title: 🏥 Hospital Triage OpenEnv
 emoji: 🏥
 colorFrom: red
 colorTo: blue
-sdk: gradio
+sdk: docker
 python_version: 3.10
 app_file: app.py
 pinned: true
@@ -11,83 +13,60 @@ license: mit
 tags:
 - healthcare
 - triage
-- gradio
-- medical
+- openenv
+- fastapi
+- rl
+- hospital
 - ai
-- demo
-short_description: AI-powered hospital triage priority assessment
+- pytorch
+- hackathon
+short_description: OpenEnv-compatible hospital triage environment
 ---
 
-# 🏥 Hospital Triage System
+# 🏥 Hospital Triage OpenEnv Environment
 
-An AI-powered hospital triage system that assesses patient priority and recommends medical actions using a simple Gradio interface.
+A production-ready OpenEnv-compatible environment for hospital triage decision-making where AI agents can learn to prioritize patients effectively.
 
-## 🚀 Features
+## 🎯 Problem
 
-- **AI-Powered Triage**: Analyzes patient vitals and pain levels
-- **Simple Interface**: Easy-to-use Gradio web UI
-- **Real-time Assessment**: Instant triage decisions
-- **Color-Coded Results**: Visual triage level indicators
-- **Mobile Friendly**: Responsive design for all devices
+Simulates a hospital emergency triage system where agents must decide between:
+- **TREAT_NOW** - Immediate medical attention
+- **MONITOR** - Observation and monitoring
+- **WAIT** - Can be deferred
 
-## 📡 How to Use
+## 🚀 OpenEnv Compliance
 
-### Input Parameters
-- **Heart Rate**: Patient's pulse in beats per minute (30-200 bpm)
-- **Oxygen Saturation**: Blood oxygen level (70-100%)
-- **Pain Level**: Patient's self-reported pain (0-10 scale)
+Fully implements OpenEnv standards with typed models:
 
-### Triage Logic
-- **Score ≥ 25**: 🚨 **TREAT_NOW** (Critical - RED)
-- **Score ≥ 15**: 👁️ **MONITOR** (Moderate - YELLOW)
-- **Score < 15**: ⏰ **WAIT** (Stable - GREEN)
+```python
+# Gym-style RL loop
+env = HospitalTriageEnv()
+observation = env.reset()
+action = agent.select_action(observation)
+observation, reward, done, info = env.step(action)
+```
 
-## 🎮 Demo
+## 📡 API Endpoints
 
-Visit the deployed Space to try the interactive triage assessment:
-- Enter patient vitals
-- Click "Assess Patient Priority"
-- Get instant triage recommendation
+### Core OpenEnv Interface
+- `POST /reset` - Initialize new episode
+- `POST /step` - Execute action decision  
+- `GET /state` - Get environment state
 
-## 🏗️ Technology Stack
+### Additional Endpoints
+- `GET /` - Health check
+- `GET /info` - Environment information
+- `GET /performance` - Performance metrics
 
-- **Gradio**: Modern web interface framework
-- **Python**: Core triage logic
-- **NumPy**: Numerical computations
-- **Hugging Face Spaces**: Instant deployment
+## 🎮 Usage Examples
 
-## 📋 Example Cases
-
-| Scenario | Heart Rate | Oxygen | Pain | Result |
-|----------|-------------|---------|--------|---------|
-| Critical Case | 110 | 88 | 8 | 🚨 TREAT_NOW |
-| Moderate Case | 85 | 95 | 4 | 👁️ MONITOR |
-| Stable Case | 70 | 98 | 2 | ⏰ WAIT |
-
-## ⚠️ Medical Disclaimer
-
-This is an AI demonstration tool for educational purposes only. Always consult qualified healthcare professionals for actual medical decisions and patient care.
-
----
-
-**🏆 Built for Meta PyTorch OpenEnv Hackathon**
-
-### API Endpoints
-
-- **Interactive Docs**: Visit `/docs` for interactive API documentation
-- **Reset Environment**: `POST /reset`
-- **Execute Action**: `POST /step` 
-- **Get State**: `GET /state`
-- **View Metrics**: `GET /metrics`
-
-### Test the System
-
+### Python API
 ```python
 import requests
 
 # Reset environment
-response = requests.post("/reset", json={"task": "medium"})
-state = response.json()
+response = requests.post("/reset", json={"difficulty": "medium"})
+episode = response.json()
 
 # Take action
 response = requests.post("/step", json={"action": "TREAT_NOW"})
@@ -97,120 +76,114 @@ print(f"Reward: {result['reward']}")
 print(f"Done: {result['done']}")
 ```
 
-## Features
+### Agent Interaction
+```python
+from env_new import HospitalTriageEnv
+from models import Action, ActionType
 
-- **Severity Score Normalization** (0-100)
--  **Triage Categories** (RED/YELLOW/GREEN)
-- **Resource Management** (ICU/general beds, doctors)
-- **Balanced Reward System**
-- **Queue Simulation**
-- **Explainable AI**
+env = HospitalTriageEnv(difficulty="medium")
+observation = env.reset()
 
-## Live Demo
+action = Action(action=ActionType.TREAT_NOW)
+result = env.step(action)
+```
 
-Visit the Space URL to interact with the live API and explore the comprehensive documentation.
+## 📊 Sample Input/Output
 
-## Key Features
+### Reset Response
+```json
+{
+  "observation": {
+    "patient": {
+      "patient_id": "P1234",
+      "vitals": {"heart_rate": 85, "oxygen_saturation": 92},
+      "symptoms": ["chest_pain"],
+      "severity_score": 75.3,
+      "triage_level": "RED"
+    },
+    "available_resources": {"icu_beds": 3, "doctors": 5},
+    "step_count": 0
+  },
+  "state": {
+    "episode_id": "uuid-string",
+    "step_count": 0,
+    "total_reward": 0.0,
+    "is_done": false
+  }
+}
+```
 
-### Severity Scoring
-- Weighted formula: SPO2 (25%), systolic BP (20%), heart rate (15%), age (10%), symptoms (30%)
-- Consistent distribution: LOW (0-20), MODERATE (21-50), CRITICAL (51-100)
-- Proper triage mapping: RED/YELLOW/GREEN
+### Step Response
+```json
+{
+  "observation": {...},
+  "reward": 1.0,
+  "done": true,
+  "info": {
+    "reward_explanation": "Correctly identified critical patient",
+    "performance": {"accuracy": 1.0}
+  }
+}
+```
 
-### Resource Management
-- ICU beds, general beds, doctors, nurses tracking
-- Strict resource constraints with blocking logic
-- Resource allocation and release management
+## 🏗️ Environment Design
+
+### Difficulty Levels
+- **EASY** - Clear symptoms, obvious vitals
+- **MEDIUM** - Mixed signals, moderate complexity  
+- **HARD** - Ambiguous critical cases
 
 ### Reward System
-- Moderate rewards (0.4-0.7) for correct decisions
-- Strong penalties (-0.5 or lower) for incorrect actions
-- Resource violation penalties and waiting time penalties
+- **Correct critical decision** → +1.0
+- **Correct moderate decision** → +0.8
+- **Correct low priority** → +0.6
+- **Slightly incorrect** → +0.5
+- **Dangerous wrong decision** → +0.0
 
-## Architecture
+## 🧪 Testing
 
-```
-Hospital_Triage_System/
-├── main.py              # FastAPI application
-├── env.py               # Environment logic
-├── severity.py          # Severity calculation
-├── reward.py            # Reward system
-├── test_system.py       # Test suite
-├── requirements.txt     # Dependencies
-└── Dockerfile          # Deployment config
+Run the inference script to test agent performance:
+
+```bash
+python inference.py
 ```
 
-## Demo Usage
+This demonstrates:
+- Simple rule-based agent vs random baseline
+- Reproducible scoring with fixed seeds
+- Performance metrics and comparisons
+- API workflow testing
 
-1. Visit the live Space
-2. Try the interactive API documentation
-3. Reset environment with different difficulty levels
-4. Test TREAT_NOW, MONITOR, and WAIT actions
-5. View performance metrics
+## 📁 Project Structure
 
-## AI Integration
+```
+hospital_triage_env/
+├── models.py          # Action, Observation, State models
+├── env.py             # Environment logic
+├── app.py             # FastAPI server
+├── inference.py       # Demo script
+├── reward.py          # Reward calculation
+├── severity.py        # Severity scoring
+├── requirements.txt
+└── README.md
+```
 
-- Compatible with RL frameworks
-- Standard OpenEnv interface
-- Structured state representation
-- Calibrated reward signals
+## 🔧 Technologies
 
-## Technologies Used
+- **FastAPI** - Web framework and API
+- **OpenEnv** - Environment interface standard
+- **Pydantic** - Data validation and models
+- **Python 3.10** - Core language
 
-- **FastAPI**: Web framework and API
-- **OpenEnv**: Environment interface standard
-- **Pydantic**: Data validation
-- **Python**: Core programming language
-- **Uvicorn**: ASGI server
-- **Docker**: Containerization
+## 🌐 Live Demo
 
-## Performance Metrics
+Interactive API documentation available at `/docs` endpoint when running.
 
-- Average reward per step
-- Total cumulative reward
-- Decision efficiency ratio
-- Patients treated count
-- Termination analysis
-## OpenEnv Environment Details
-
-### Observation Space
-The environment state includes:
-- severity (1–10)
-- waiting_time (minutes)
-- age
-- resources_available
-- condition (cardiac, injury, fever)
-
-### Action Space
-The agent can take one of the following actions:
-- TREAT_NOW
-- MONITOR
-- WAIT
-
-### Reward Function
-- Correct critical decision → +10
-- Correct moderate decision → +5
-- Correct low priority decision → +2
-- Incorrect decision → -5
-- Penalty for long waiting time → -3
-
-### Episode Design
-Each episode represents a single triage decision, making it a one-step decision environment.
-
-## Hackathon Highlights
-
-- **Realistic Simulation**: Hospital resource management
-- **Explainable AI**: Clear decision reasoning
-- **Professional API**: Production-ready interface
-- **Comprehensive Testing**: Full verification suite
-- **OpenEnv Compatible**: Standard RL interface
-
-## License
+## 📝 License
 
 MIT License
 
 ---
 
-**Built for Meta PyTorch Hackathon 2026**  
-**Category: AI/ML with OpenEnv Framework**  
-**Live Demo**: https://dhanyashri-tr-hospital-triege-system.hf.space
+**Built for Meta PyTorch OpenEnv Hackathon**  
+**Category: AI/ML with OpenEnv Framework**
