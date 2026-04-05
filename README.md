@@ -1,24 +1,20 @@
 ---
-title: 🏥 Hospital OpenEnv API
+title: Hospital Triage System
 emoji: 🏥
 colorFrom: red
 colorTo: blue
 sdk: docker
 python_version: 3.10
-app_file: app_minimal.py
+app_file: app_simple.py
 pinned: true
 license: mit
 tags:
 - healthcare
 - triage
-- openenv
 - fastapi
-- rl
-- hospital
-- ai
-- pytorch
-- hackathon
-short_description: AI Hospital Triage System with OpenEnv interface
+- api
+- demo
+short_description: Hospital Triage System API
 ---
 
 # Hospital OpenEnv API

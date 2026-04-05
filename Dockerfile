@@ -1,12 +1,9 @@
-# Use Python base image
 FROM python:3.10-slim
 
-# Set working directory
 WORKDIR /app
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    git \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
@@ -14,13 +11,12 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install --no-cache-dir openenv-core
+RUN pip install --no-cache-dir fastapi uvicorn
 
-# Copy all files
-COPY . .
+# Copy application files
+COPY app_simple.py app.py
 
-# Expose port (for Hugging Face Spaces)
+# Expose port for Hugging Face Spaces
 EXPOSE 7860
 
 # Health check
