@@ -13,6 +13,7 @@ from env import HospitalEnv
 from severity import generate_random_patient
 
 
+
 # Global environment instance
 env: Optional[HospitalEnv] = None
 
@@ -74,7 +75,11 @@ class MetricsResponse(BaseModel):
     patients_treated: int
     termination_reason: Optional[str]
 
+from fastapi.responses import RedirectResponse
 
+@app.get("/")
+def root():
+    return RedirectResponse(url="/docs")
 @app.get("/")
 async def root():
     """Root endpoint with API information"""
