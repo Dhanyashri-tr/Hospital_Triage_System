@@ -20,12 +20,12 @@ RUN pip install --no-cache-dir openenv-core
 # Copy all files
 COPY . .
 
-# Expose port (for FastAPI)
-EXPOSE 8000
+# Expose port (for Hugging Face Spaces)
+EXPOSE 7860
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:7860/health || exit 1
 
 # Run app
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
