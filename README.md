@@ -7,7 +7,7 @@ sdk: streamlit
 app_file: app.py
 pinned: false
 ---
-
+streamlit==1.35.0
 # 🏥 AI Hospital Triage System
 
 An AI-powered patient triage assessment system designed for emergency medical care prioritization. Built for the Meta PyTorch OpenEnv Hackathon.
