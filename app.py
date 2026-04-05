@@ -1,235 +1,46 @@
 import gradio as gr
-from env import HospitalEnv
-from datetime import datetime
+from inference import triage_system
 
-env = HospitalEnv()
 
-def simulate(name, severity, waiting_time, age, resources, condition):
-    name = name.strip().title()
-
-    if resources == "Available":
-        resources = 1
-    else:
-        resources = 0
-
-    # convert condition text to numeric severity
-    if severity == "Mild pain":
-        severity = 2
-    elif severity == "Moderate pain":
-        severity = 5
-    elif severity == "Severe pain":
-        severity = 8
-    elif severity == "Unconscious":
-        severity = 10
-    state = env.reset()
-    # convert resource input to numeric
-    
-
-    # override values
-    state["severity"] = severity
-    state["waiting_time"] = waiting_time
-    state["age"] = age
-    state["resources_available"] = resources
-    state["condition"] = condition
-    priority_score = (
-    state["severity"] * 2 +
-    state["waiting_time"] * 0.5 +
-    (10 if state["condition"] in ["cardiac", "stroke"] else 0)
+def predict(heart_rate, oxygen, temperature, pain_level):
+    score, decision, explanation = triage_system(
+        heart_rate, oxygen, temperature, pain_level
     )
-    priority_score = round(priority_score, 2)
-    if priority_score >= 25:
-        level = "🔴 Critical"
-    elif priority_score >= 15:
-        level = "🟡 Moderate"
-    else:
-        level = "🟢 Safe"
-    if priority_score >= 25:
-        color = "#ff3b3b"   # red
-    elif priority_score >= 15:
-        color = "#ffaa00"   # orange
-    else:
-        color = "#00c853"   # green
 
-    max_score = 50  # expected max priority
-    percentage = (priority_score / max_score) * 100
+    return (
+        f"{score}",
+        decision,
+        explanation
+    )
 
-    condition = state["condition"].lower().strip()
 
-    if condition == "cardiac":
-        emoji = "❤️"
-    elif condition == "stroke":
-        emoji = "🧠"
-    elif condition == "injury":
-        emoji = "🦴"
-    else:
-        emoji = "🩺"
+with gr.Blocks(theme=gr.themes.Soft()) as demo:
+    gr.Markdown("# 🏥 AI Hospital Triage System")
+    gr.Markdown("### Smart patient prioritization using vital signs")
 
-    # Alert Message
-    if level == "🔴 Critical":
-        alert = "🚨 Immediate ICU attention required!"
-    elif level == "🟡 Moderate":
-        alert = "⚠️ Needs attention soon"
-    else:
-        alert = "✅ Safe to wait"
+    with gr.Row():
+        heart_rate = gr.Number(label="Heart Rate (bpm)", value=80)
+        oxygen = gr.Number(label="Oxygen Level (%)", value=98)
+        temperature = gr.Number(label="Temperature (°C)", value=36.5)
+        pain_level = gr.Slider(1, 10, value=3, label="Pain Level")
 
-    #  Risk Factors
-    risk_factors = []
+    analyze_btn = gr.Button("🔍 Analyze Patient")
 
-    if state["age"] > 60:
-        risk_factors.append("Elderly")
+    score_output = gr.Textbox(label="Priority Score")
+    decision_output = gr.Textbox(label="Decision")
+    explanation_output = gr.Textbox(label="AI Explanation")
 
-    if state["severity"] > 7:
-        risk_factors.append("High Severity")
+    analyze_btn.click(
+        fn=predict,
+        inputs=[heart_rate, oxygen, temperature, pain_level],
+        outputs=[score_output, decision_output, explanation_output]
+    )
 
-    if state["waiting_time"] > 30:
-        risk_factors.append("Long Wait Time")
+    gr.Markdown("### 🚦 Decision Levels")
+    gr.Markdown("""
+    - 🚨 **TREAT NOW** → Immediate emergency care  
+    - ⚠️ **MONITOR** → Needs observation  
+    - 🕒 **WAIT** → Stable condition  
+    """)
 
-    risk_text = ", ".join(risk_factors) if risk_factors else "None"
-
-    # Department Suggestion
-    if state["condition"] == "cardiac":
-        dept = "❤️ Cardiology"
-    elif state["condition"] == "stroke":
-        dept = "🧠 Neurology"
-    elif state["condition"] == "injury":
-        dept = "🦴 Orthopedics"
-    else:
-        dept = "🩺 General Medicine"
-
-    # Estimated Wait Time
-    if level == "🔴 Critical":
-        wait_msg = "Immediate"
-    elif level == "🟡 Moderate":
-        wait_msg = "Within 15 minutes"
-    else:
-        wait_msg = "30+ minutes"
-        if state["condition"] == "cardiac":
-            emoji = "❤️"
-        elif state["condition"] == "stroke":
-            emoji = "🧠"
-        else:
-            emoji = "🩺"
-
-    # Patient ID 
-    patient_id = f"P{int(state['severity']*100 + state['age'])}"
-
-    # Timestamp
-    timestamp = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-
-    # priority meter
-    meter_width = min(priority_score * 3, 100)
-
-    action = smart_agent(state, priority_score)
-    next_state, reward, done = env.step(action, priority_score)
-
-    return f"""
-    <h2>👤 Patient: {name}</h2>
-
-    <p><b>  Patient ID:</b> {patient_id}</p>
-    <p><b>  Time:</b> {timestamp}</p>
-
-    <h3>  Patient Summary</h3>
-
-    <ul>
-    <li><b>Severity:</b> {state["severity"]}</li>
-    <li><b>Waiting Time:</b> {state["waiting_time"]} minutes</li>
-    <li><b>Age:</b> {state["age"]}</li>
-    <li>Condition: {emoji} {state["condition"]}</li>
-    </ul>
-
-    <h3 style="color:purple;">🔥 Priority Score: {priority_score}</h3>
-    <h3>  Priority Level: {level}</h3>
-
-    <h3 style="color:red;">{alert}</h3>
-
-    <p><b>⚠️ Risk Factors:</b> {risk_text}</p>
-    <p><b>   Department:</b> {dept}</p>
-    <p><b>⏳ Estimated Wait:</b> {wait_msg}</p>
-    
-
-    <h3 style="color:{'red' if action=='treat_now' else 'green'};">
-       Decision: {action.upper()}
-    </h3>
-
-    <p><b>Reward:</b> {reward}</p>
-
-    <p><b>Reason:</b> {explain_decision(priority_score)}</p>
-    <h3>Priority Meter</h3>
-<div style="
-    background:#1a1a1a;
-    border-radius:20px;
-    padding:6px;
-    box-shadow: { '0 0 10px #00ff87' if priority_score < 15 else 
-              '0 0 10px #ffd200' if priority_score < 25 else 
-              '0 0 20px #ff4b2b' };
-">
-
-    <div style="
-        width: {percentage}%;
-        height:25px;
-        border-radius:20px;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        font-weight:bold;
-        color:white;
-
-        background: { 
-            'linear-gradient(90deg, #00ff87, #60efff)' if priority_score < 15 else 
-            'linear-gradient(90deg, #f7971e, #ffd200)' if priority_score < 25 else 
-            'linear-gradient(90deg, #ff416c, #ff4b2b)' 
-        };
-
-        box-shadow: 0 0 15px rgba(255, 75, 43, 0.6);
-        transition: all 0.6s ease-in-out;
-    ">
-        ⚡ {priority_score}
-    </div>
-
-</div>
-    </div>
-    """
-
-def smart_agent(state, priority_score):
-    if state["resources_available"] == 0:
-        return "WAIT"
-
-    if priority_score >= 25:
-        return "TREAT_NOW"
-
-    elif priority_score >= 15:
-        return "MONITOR"
-
-    else:
-        return "WAIT"
-
-def explain_decision(priority_score):
-
-    if priority_score >= 25:
-        return "Critical condition → immediate treatment required"
-
-    elif priority_score >= 15:
-        return "Moderate risk → needs monitoring"
-
-    else:
-        return "Stable condition → safe to wait"
-
-interface = gr.Interface(
-    fn=simulate,
-    inputs=[
-        gr.Textbox(label="Patient Name"),
-        gr.Dropdown(
-    ["Mild pain", "Moderate pain", "Severe pain", "Unconscious"],
-    label="Patient Condition Severity"
-    ),
-        gr.Slider(0, 60, label="Waiting Time (minutes)"),
-        gr.Slider(0, 100, label="Age"),
-        gr.Radio(["Available", "Not Available"], label="Resources"),
-        gr.Textbox(label="Condition (fever/injury/etc)")
-    ],
-    outputs=gr.HTML(),
-    title="🏥 Hospital Triage AI System",
-    description="AI-powered patient prioritization system with explainable decisions"
-)
-
-interface.launch()
+demo.launch()
