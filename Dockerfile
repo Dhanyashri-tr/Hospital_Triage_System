@@ -25,7 +25,7 @@ EXPOSE 7860
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:7860/health || exit 1
+    CMD curl -f http://localhost:7860/ || exit 1
 
 # Run FastAPI app
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860"]

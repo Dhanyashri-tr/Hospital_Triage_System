@@ -5,7 +5,7 @@ colorFrom: red
 colorTo: blue
 sdk: docker
 python_version: 3.10
-app_file: main.py
+app_file: app.py
 pinned: true
 license: mit
 tags:
