@@ -1,22 +1,19 @@
 ---
 title: AI Hospital Triage System
 emoji: 🏥
-colorFrom: blue
-colorTo: red
 sdk: streamlit
 app_file: app.py
-pinned: false
 ---
-streamlit==1.35.0
+
 # 🏥 AI Hospital Triage System
 
-An AI-powered patient triage assessment system designed for emergency medical care prioritization. Built for the Meta PyTorch OpenEnv Hackathon.
+An AI-powered patient triage assessment system designed for emergency medical care prioritization. Built for Meta PyTorch OpenEnv Hackathon.
 
 ## 🚀 Features
 
 - **AI-Powered Assessment**: Intelligent triage scoring algorithm
 - **Real-time Analysis**: Instant patient priority evaluation
-- **Professional UI**: Clean, intuitive Gradio interface
+- **Professional UI**: Clean, intuitive Streamlit interface
 - **Evidence-Based**: Medical triage principles implementation
 - **Mobile Responsive**: Works on all devices
 
@@ -52,7 +49,7 @@ This AI system helps emergency medical staff quickly assess patient priority bas
 
 ## 🏗️ Tech Stack
 
-- **Frontend**: Gradio 4.36.1
+- **Frontend**: Streamlit 1.35.0
 - **Backend**: Python 3.10+
 - **Deployment**: Hugging Face Spaces
 - **Algorithm**: Custom triage scoring system
@@ -69,7 +66,7 @@ cd Hospital_Triage_System
 pip install -r requirements.txt
 
 # Run the application
-python app.py
+streamlit run app.py
 ```
 
 ### Hugging Face Spaces
@@ -101,7 +98,7 @@ The scoring algorithm prioritizes:
 
 ## ⚠️ Medical Disclaimer
 
-**IMPORTANT**: This AI-powered triage system is designed for **educational demonstration purposes only** as part of the Meta PyTorch OpenEnv Hackathon.
+**IMPORTANT**: This AI-powered triage system is designed for **educational demonstration purposes only** as part of Meta PyTorch OpenEnv Hackathon.
 
 - ❌ **Do not use** this tool for actual medical decision-making
 - ❌ **Do not rely** on this system for real patient assessment
@@ -114,7 +111,7 @@ The scoring algorithm prioritizes:
 - **Category**: Healthcare AI Applications
 - **Purpose**: Demonstrate AI in medical triage systems
 - **Status**: Educational Prototype
-- **Technology**: Python, Gradio, Machine Learning
+- **Technology**: Python, Streamlit, Machine Learning
 
 ## 📱 Interface Features
 
@@ -141,4 +138,4 @@ For questions about this hackathon project or AI implementation:
 
 ---
 
-**🏆 Built with passion for healthcare innovation at the Meta PyTorch OpenEnv Hackathon**
+**🏆 Built with passion for healthcare innovation at Meta PyTorch OpenEnv Hackathon**
