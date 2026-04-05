@@ -1,64 +1,40 @@
 """
 Hospital Triage System - Gradio UI for Hugging Face Spaces
-Simple, working interface for patient triage
+Clean, working interface with exact triage logic
 """
 
 import gradio as gr
-import numpy as np
 
 def calculate_triage_score(heart_rate, oxygen_sat, pain_level):
-    """Calculate triage score and determine action"""
-    # Simple scoring algorithm
-    score = 0
+    """Calculate triage score using exact formula: score = heart_rate/10 + (100 - oxygen) + pain*2"""
     
-    # Heart rate scoring
-    if heart_rate < 40 or heart_rate > 130:
-        score += 20
-    elif heart_rate < 50 or heart_rate > 120:
-        score += 15
-    elif heart_rate > 100:
-        score += 10
-    elif heart_rate > 90:
-        score += 5
+    # Exact scoring formula as specified
+    score = (heart_rate / 10) + (100 - oxygen_sat) + (pain_level * 2)
     
-    # Oxygen saturation scoring
-    if oxygen_sat < 85:
-        score += 30
-    elif oxygen_sat < 90:
-        score += 20
-    elif oxygen_sat < 95:
-        score += 10
-    
-    # Pain level scoring
-    score += pain_level * 10  # Pain level 1-10, scaled to 10-100
-    
-    # Normalize to 0-100
-    final_score = min(100, score)
-    
-    # Determine triage action
-    if final_score >= 25:
-        action = "TREAT_NOW"
+    # Determine triage action based on score thresholds
+    if score >= 25:
+        action = "TREAT NOW"
         triage_level = "RED"
-        explanation = f"Critical condition detected (score: {final_score}). Immediate treatment required."
-    elif final_score >= 15:
+        explanation = f"Critical condition detected (score: {score:.1f}). Immediate treatment required."
+    elif score >= 15:
         action = "MONITOR"
         triage_level = "YELLOW"
-        explanation = f"Moderate condition (score: {final_score}). Close monitoring required."
+        explanation = f"Moderate condition (score: {score:.1f}). Close monitoring required."
     else:
         action = "WAIT"
         triage_level = "GREEN"
-        explanation = f"Stable condition (score: {final_score}). Can wait for treatment."
+        explanation = f"Stable condition (score: {score:.1f}). Can wait for treatment."
     
-    return final_score, triage_level, action, explanation
+    return score, triage_level, action, explanation
 
 def triage_assessment(heart_rate, oxygen_sat, pain_level):
     """Main triage function for Gradio"""
     try:
         # Validate inputs
-        if not all([heart_rate, oxygen_sat, pain_level is not None]):
+        if heart_rate is None or oxygen_sat is None or pain_level is None:
             return "❌ Please fill in all fields", "", "", ""
         
-        # Calculate triage
+        # Calculate triage using exact formula
         score, triage_level, action, explanation = calculate_triage_score(
             heart_rate, oxygen_sat, pain_level
         )
@@ -67,17 +43,19 @@ def triage_assessment(heart_rate, oxygen_sat, pain_level):
         result = f"""
 🏥 **Triage Assessment Complete**
 
-**Patient Score:** {score}/100
+**Patient Score:** {score:.1f}
 **Triage Level:** {triage_level}
 **Recommended Action:** {action}
 
 **Explanation:** {explanation}
 
+**Formula Used:** score = (heart_rate/10) + (100 - oxygen) + (pain*2)
+
 ---
 *This is an AI assessment tool. Always consult with medical professionals for actual patient care.*
         """.strip()
         
-        return result, f"Score: {score}/100", triage_level, action
+        return result, f"{score:.1f}", triage_level, action
     
     except Exception as e:
         return f"❌ Error: {str(e)}", "", "", ""
@@ -89,7 +67,8 @@ with gr.Blocks(title="🏥 Hospital Triage System", theme=gr.themes.Soft()) as d
     
     **AI-Powered Patient Priority Assessment**
     
-    Enter patient vitals below to get triage recommendation.
+    Enter patient vitals below to get triage recommendation using the scoring formula:
+    **score = (heart_rate/10) + (100 - oxygen) + (pain*2)**
     """)
     
     with gr.Row():
@@ -130,7 +109,7 @@ with gr.Blocks(title="🏥 Hospital Triage System", theme=gr.themes.Soft()) as d
         with gr.Column(scale=2):
             full_result = gr.Textbox(
                 label="📋 Assessment Result",
-                lines=12,
+                lines=14,
                 interactive=False,
                 show_copy_button=True
             )
@@ -154,15 +133,24 @@ with gr.Blocks(title="🏥 Hospital Triage System", theme=gr.themes.Soft()) as d
                 container=True
             )
     
-    # Example cases
+    # Scoring explanation
     gr.Markdown("""
+    ### 📊 Scoring Logic
+    
+    **Formula:** `score = (heart_rate/10) + (100 - oxygen) + (pain*2)`
+    
+    **Decision Thresholds:**
+    - **Score ≥ 25**: 🚨 **TREAT NOW** (Critical - RED)
+    - **Score ≥ 15**: 👁️ **MONITOR** (Moderate - YELLOW)
+    - **Score < 15**: ⏰ **WAIT** (Stable - GREEN)
+    
     ### 🧪 Example Cases
     
-    | Case | Heart Rate | Oxygen | Pain | Result |
-    |-------|-------------|---------|-------|---------|
-    | Critical | 110 | 88 | 8 | 🚨 TREAT_NOW |
-    | Moderate | 85 | 95 | 4 | 👁️ MONITOR |
-    | Stable | 70 | 98 | 2 | ⏰ WAIT |
+    | Case | Heart Rate | Oxygen | Pain | Score | Result |
+    |-------|-------------|---------|-------|-------|--------|
+    | Critical | 110 | 88 | 8 | 110/10 + 12 + 16 = 39 | 🚨 TREAT NOW |
+    | Moderate | 85 | 95 | 4 | 8.5 + 5 + 8 = 21.5 | 👁️ MONITOR |
+    | Stable | 70 | 98 | 2 | 7 + 2 + 4 = 13 | ⏰ WAIT |
     """)
     
     # Connect the function
