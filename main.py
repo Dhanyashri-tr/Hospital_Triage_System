@@ -1,311 +1,225 @@
 """
-FastAPI Main Application
-Hospital OpenEnv API with /reset, /step, and /state endpoints
+Hospital Triage System - Production Ready FastAPI App
+Clean, modular, and Hugging Face compatible
 """
 
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from typing import Dict, List, Optional, Any
-import uuid
-from contextlib import asynccontextmanager
-
-from env import HospitalEnv
-from severity import generate_random_patient
-
-
-
-# Global environment instance
-env: Optional[HospitalEnv] = None
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Initialize and cleanup the environment"""
-    global env
-    env = HospitalEnv()
-    yield
-    # Cleanup can be added here if needed
-
+from pydantic import BaseModel, Field
+from typing import Optional, List, Dict, Any
+import uvicorn
 
 # Initialize FastAPI app
 app = FastAPI(
-    title="Hospital OpenEnv API",
-    description="AI Hospital Triage System with Resource Management",
-    version="1.1.0",
+    title="Hospital Triage System",
+    description="AI-powered patient triage priority prediction",
+    version="1.0.0",
     docs_url="/docs",
-    redoc_url="/redoc",
-    lifespan=lifespan
+    redoc_url="/redoc"
 )
 
+# Pydantic models for data validation
+class PatientVitals(BaseModel):
+    """Patient vital signs"""
+    heart_rate: int = Field(ge=30, le=200, description="Heart rate in bpm")
+    oxygen_saturation: float = Field(ge=70, le=100, description="Oxygen saturation %")
+    temperature: float = Field(ge=35.0, le=42.0, description="Temperature in Celsius")
+    systolic_bp: int = Field(ge=60, le=200, description="Systolic blood pressure")
+    age: int = Field(ge=1, le=120, description="Patient age")
 
-# Pydantic models for API requests/responses
-class ResetRequest(BaseModel):
-    task: Optional[str] = "medium"
-    max_steps: Optional[int] = 100
+class PatientData(BaseModel):
+    """Complete patient information"""
+    patient_id: str
+    vitals: PatientVitals
+    symptoms: List[str] = Field(default_factory=list)
+    waiting_time: int = Field(ge=0, description="Minutes waiting")
 
+class TriageRequest(BaseModel):
+    """Request for triage prediction"""
+    patient: PatientData
 
-class StepRequest(BaseModel):
-    action: str  # "TREAT_NOW", "MONITOR", or "WAIT"
+class TriageResponse(BaseModel):
+    """Response with triage decision"""
+    patient_id: str
+    triage_level: str = Field(description="RED, YELLOW, or GREEN")
+    severity_score: float = Field(ge=0, le=100, description="Severity score 0-100")
+    recommended_action: str = Field(description="TREAT_NOW, MONITOR, or WAIT")
+    priority_score: float = Field(ge=0, le=1, description="Priority score 0-1")
+    explanation: str = Field(description="Reason for decision")
 
+class HealthResponse(BaseModel):
+    """Health check response"""
+    status: str
+    message: str
 
-class StateResponse(BaseModel):
-    current_step: int
-    current_patient: Optional[Dict[str, Any]]
-    queue_length: int
-    treated_count: int
-    total_reward: float
-    resources: Dict[str, int]
-    max_resources: Dict[str, int]
-    done: bool
-    termination_reason: Optional[str]
+# Core triage logic
+def calculate_severity_score(vitals: PatientVitals, symptoms: List[str]) -> float:
+    """Calculate severity score from vitals and symptoms"""
+    score = 0
+    
+    # Oxygen saturation (most critical)
+    if vitals.oxygen_saturation < 85:
+        score += 30
+    elif vitals.oxygen_saturation < 90:
+        score += 20
+    elif vitals.oxygen_saturation < 95:
+        score += 10
+    
+    # Heart rate
+    if vitals.heart_rate < 40 or vitals.heart_rate > 130:
+        score += 20
+    elif vitals.heart_rate < 50 or vitals.heart_rate > 120:
+        score += 15
+    elif vitals.heart_rate > 100:
+        score += 10
+    
+    # Blood pressure
+    if vitals.systolic_bp < 80 or vitals.systolic_bp > 180:
+        score += 15
+    elif vitals.systolic_bp < 90 or vitals.systolic_bp > 160:
+        score += 10
+    
+    # Temperature
+    if vitals.temperature > 39.5:
+        score += 10
+    elif vitals.temperature > 38.5:
+        score += 5
+    
+    # Age
+    if vitals.age > 80:
+        score += 10
+    elif vitals.age > 65:
+        score += 7
+    elif vitals.age > 50:
+        score += 5
+    
+    # Symptoms
+    critical_symptoms = ['chest_pain', 'confusion', 'shortness_breath', 'bleeding', 'fainting']
+    moderate_symptoms = ['abdominal_pain', 'headache']
+    
+    for symptom in symptoms:
+        if symptom in critical_symptoms:
+            score += 8
+        elif symptom in moderate_symptoms:
+            score += 4
+    
+    return min(100, max(0, score))
 
+def determine_triage_level(severity_score: float) -> str:
+    """Determine triage level from severity score"""
+    if severity_score >= 60:
+        return "RED"
+    elif severity_score >= 30:
+        return "YELLOW"
+    else:
+        return "GREEN"
 
-class StepResponse(BaseModel):
-    state: StateResponse
-    reward: float
-    done: bool
-    info: Dict[str, Any]
+def recommend_action(triage_level: str, waiting_time: int) -> str:
+    """Recommend action based on triage level and waiting time"""
+    if triage_level == "RED":
+        return "TREAT_NOW"
+    elif triage_level == "YELLOW":
+        if waiting_time > 30:
+            return "TREAT_NOW"
+        else:
+            return "MONITOR"
+    else:  # GREEN
+        return "WAIT"
 
+def calculate_priority_score(severity_score: float) -> float:
+    """Calculate priority score 0-1 from severity score"""
+    return min(1.0, max(0.0, severity_score / 100))
 
-class MetricsResponse(BaseModel):
-    average_reward: float
-    total_reward: float
-    efficiency: float
-    steps_completed: int
-    patients_treated: int
-    termination_reason: Optional[str]
+def generate_explanation(triage_level: str, severity_score: float, symptoms: List[str]) -> str:
+    """Generate explanation for triage decision"""
+    if triage_level == "RED":
+        return f"Critical condition detected (severity: {severity_score:.1f}). Immediate treatment required due to life-threatening symptoms."
+    elif triage_level == "YELLOW":
+        return f"Moderate condition (severity: {severity_score:.1f}). Close monitoring required, may need treatment if condition worsens."
+    else:
+        return f"Stable condition (severity: {severity_score:.1f}). Can wait, low priority for treatment."
 
-from fastapi.responses import RedirectResponse
-
-@app.get("/")
-def root():
-    return RedirectResponse(url="/docs")
-@app.get("/")
+# API Endpoints
+@app.get("/", response_model=HealthResponse)
 async def root():
-    """Root endpoint with API information"""
-    return {
-        "message": "Hospital OpenEnv API v1.1.0",
-        "description": "AI Hospital Triage System with Resource Management",
-        "endpoints": {
-            "/reset": "POST - Reset environment with optional task difficulty",
-            "/step": "POST - Execute one action step",
-            "/state": "GET - Get current environment state",
-            "/metrics": "GET - Get performance metrics",
-            "/docs": "GET - Interactive API documentation"
-        },
-        "actions": ["TREAT_NOW", "MONITOR", "WAIT"],
-        "difficulty_levels": ["easy", "medium", "hard"]
-    }
+    """Root endpoint"""
+    return HealthResponse(
+        status="ok",
+        message="Hospital Triage System API is running"
+    )
 
-
-@app.post("/reset", response_model=StateResponse)
-async def reset_environment(request: ResetRequest):
-    """
-    Reset the environment to initial state
-    
-    - **task**: Difficulty level ("easy", "medium", "hard")
-    - **max_steps**: Maximum number of steps before termination
-    """
-    global env
-    
-    try:
-        # Create new environment instance
-        env = HospitalEnv(max_steps=request.max_steps, difficulty=request.task)
-        
-        # Reset environment
-        state = env.reset(task=request.task)
-        
-        return StateResponse(**state)
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Reset failed: {str(e)}")
-
-
-@app.post("/step", response_model=StepResponse)
-async def step_environment(request: StepRequest):
-    """
-    Execute one action step in the environment
-    
-    - **action**: Action to take ("TREAT_NOW", "MONITOR", "WAIT")
-    
-    Returns:
-    - **state**: Updated environment state
-    - **reward**: Reward for the action (-1.0 to 1.0)
-    - **done**: Whether environment is finished
-    - **info**: Additional information including reward breakdown
-    """
-    global env
-    
-    if env is None:
-        raise HTTPException(status_code=400, detail="Environment not initialized. Call /reset first.")
-    
-    if env.done:
-        raise HTTPException(status_code=400, detail="Environment is done. Call /reset to start new episode.")
-    
-    try:
-        # Validate action
-        valid_actions = ["TREAT_NOW", "MONITOR", "WAIT"]
-        if request.action not in valid_actions:
-            raise HTTPException(
-                status_code=400, 
-                detail=f"Invalid action. Must be one of: {valid_actions}"
-            )
-        
-        # Execute step
-        state, reward, done, info = env.step(request.action)
-        
-        # Enhance response with additional fields
-        if state.get("current_patient"):
-            info.update({
-                "severity_score": state["current_patient"].get("severity_score"),
-                "triage_level": state["current_patient"].get("triage_level"),
-                "decision_reason": info.get("decision_reason", ""),
-                "reward_breakdown": info.get("reward_breakdown", {}),
-                "resource_status_message": info.get("resource_status_message", ""),
-                "resource_blocked": info.get("resource_blocked", False),
-                "no_bed_available": info.get("no_bed_available", False),
-                "no_doctor_available": info.get("no_doctor_available", False)
-            })
-        
-        return StepResponse(
-            state=StateResponse(**state),
-            reward=reward,
-            done=done,
-            info=info
-        )
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Step failed: {str(e)}")
-
-
-@app.get("/state", response_model=StateResponse)
-async def get_state():
-    """
-    Get current environment state without taking a step
-    
-    Returns the complete current state including patient information,
-    resource availability, and environment status.
-    """
-    global env
-    
-    if env is None:
-        raise HTTPException(status_code=400, detail="Environment not initialized. Call /reset first.")
-    
-    try:
-        state = env.state()
-        return StateResponse(**state)
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Get state failed: {str(e)}")
-
-
-@app.get("/metrics", response_model=MetricsResponse)
-async def get_metrics():
-    """
-    Get performance metrics for the current episode
-    
-    Returns:
-    - **average_reward**: Average reward per step
-    - **total_reward**: Cumulative reward for the episode
-    - **efficiency**: Ratio of positive to total decisions
-    - **steps_completed**: Number of steps taken
-    - **patients_treated**: Number of patients successfully treated
-    - **termination_reason**: Reason for episode termination
-    """
-    global env
-    
-    if env is None:
-        raise HTTPException(status_code=400, detail="Environment not initialized. Call /reset first.")
-    
-    try:
-        metrics = env.get_metrics()
-        return MetricsResponse(**metrics)
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Get metrics failed: {str(e)}")
-
-
-@app.get("/health")
-async def health_check():
+@app.get("/health", response_model=HealthResponse)
+async def health():
     """Health check endpoint"""
-    global env
+    return HealthResponse(
+        status="ok",
+        message="Service is healthy"
+    )
+
+@app.post("/predict", response_model=TriageResponse)
+async def predict_triage(request: TriageRequest):
+    """Predict triage priority for patient"""
+    try:
+        # Calculate severity score
+        severity_score = calculate_severity_score(request.patient.vitals, request.patient.symptoms)
+        
+        # Determine triage level
+        triage_level = determine_triage_level(severity_score)
+        
+        # Recommend action
+        recommended_action = recommend_action(triage_level, request.patient.waiting_time)
+        
+        # Calculate priority score
+        priority_score = calculate_priority_score(severity_score)
+        
+        # Generate explanation
+        explanation = generate_explanation(triage_level, severity_score, request.patient.symptoms)
+        
+        return TriageResponse(
+            patient_id=request.patient.patient_id,
+            triage_level=triage_level,
+            severity_score=round(severity_score, 1),
+            recommended_action=recommended_action,
+            priority_score=round(priority_score, 3),
+            explanation=explanation
+        )
     
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+
+@app.get("/info")
+async def get_info():
+    """Get API information"""
     return {
-        "status": "healthy",
-        "environment_initialized": env is not None,
-        "environment_done": env.done if env else None,
-        "version": "1.1.0"
+        "name": "Hospital Triage System",
+        "version": "1.0.0",
+        "description": "AI-powered patient triage priority prediction",
+        "endpoints": {
+            "predict": "POST /predict - Get triage prediction",
+            "health": "GET /health - Health check",
+            "docs": "/docs - API documentation"
+        },
+        "triage_levels": ["RED", "YELLOW", "GREEN"],
+        "actions": ["TREAT_NOW", "MONITOR", "WAIT"],
+        "severity_range": [0, 100],
+        "priority_range": [0, 1]
     }
 
+# Error handlers
+@app.exception_handler(404)
+async def not_found(request, exc):
+    """Handle 404 errors"""
+    return {"error": "Endpoint not found", "message": f"The path {request.url.path} was not found"}
 
-@app.get("/demo/patient")
-async def generate_demo_patient():
-    """
-    Generate a demo patient for testing
-    
-    Returns a randomly generated patient with calculated severity score
-    and triage level for demonstration purposes.
-    """
-    try:
-        patient = generate_random_patient()
-        return {
-            "patient": patient,
-            "interpretation": {
-                "severity_level": "CRITICAL" if patient["severity_score"] >= 50 else 
-                               "MODERATE" if patient["severity_score"] >= 20 else "LOW",
-                "recommended_action": "TREAT_NOW" if patient["triage_level"] == "RED" else
-                                    "MONITOR" if patient["triage_level"] == "YELLOW" else "WAIT",
-                "urgency": "IMMEDIATE" if patient["triage_level"] == "RED" else
-                          "OBSERVE" if patient["triage_level"] == "YELLOW" else "ROUTINE"
-            }
-        }
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Demo patient generation failed: {str(e)}")
+@app.exception_handler(500)
+async def internal_error(request, exc):
+    """Handle 500 errors"""
+    return {"error": "Internal server error", "message": "An unexpected error occurred"}
 
-
-@app.get("/demo/scenario")
-async def generate_demo_scenario():
-    """
-    Generate a complete demo scenario
-    
-    Returns a sample environment state with multiple patients
-    for testing and demonstration purposes.
-    """
-    global env
-    
-    try:
-        # Create a temporary environment for demo
-        demo_env = HospitalEnv(max_steps=50, difficulty="medium")
-        demo_env.reset()
-        
-        # Get current state
-        state = demo_env.state()
-        
-        # Add sample next patients
-        sample_patients = []
-        for i in range(min(3, len(demo_env.patient_queue) - 1)):
-            sample_patients.append(demo_env.patient_queue[i + 1])
-        
-        return {
-            "current_state": StateResponse(**state),
-            "queue_preview": sample_patients,
-            "resource_status": {
-                "icu_utilization": f"{(demo_env.max_resources['icu_beds'] - demo_env.current_resources.icu_beds)}/{demo_env.max_resources['icu_beds']}",
-                "general_utilization": f"{(demo_env.max_resources['general_beds'] - demo_env.current_resources.general_beds)}/{demo_env.max_resources['general_beds']}",
-                "doctor_utilization": f"{(demo_env.max_resources['doctors'] - demo_env.current_resources.doctors)}/{demo_env.max_resources['doctors']}"
-            },
-            "recommendations": {
-                "if_red": "TREAT_NOW immediately - ICU bed required",
-                "if_yellow": "MONITOR - general bed may be needed", 
-                "if_green": "WAIT - can be deferred if resources constrained"
-            }
-        }
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Demo scenario generation failed: {str(e)}")
-
-
+# Run the app
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(
+        "app:app",
+        host="0.0.0.0",
+        port=7860,
+        log_level="info"
+    )

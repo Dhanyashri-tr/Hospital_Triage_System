@@ -5,7 +5,7 @@ colorFrom: red
 colorTo: blue
 sdk: docker
 python_version: 3.10
-app_file: app_simple.py
+app_file: app.py
 pinned: true
 license: mit
 tags:
@@ -14,7 +14,7 @@ tags:
 - fastapi
 - api
 - demo
-short_description: Hospital Triage System API
+short_description: AI-powered hospital triage priority prediction
 ---
 
 # Hospital OpenEnv API
