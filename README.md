@@ -128,8 +128,33 @@ Hospital_Triage_System/
 - Decision efficiency ratio
 - Patients treated count
 - Termination analysis
+## OpenEnv Environment Details
 
-##  Hackathon Highlights
+### Observation Space
+The environment state includes:
+- severity (1–10)
+- waiting_time (minutes)
+- age
+- resources_available
+- condition (cardiac, injury, fever)
+
+### Action Space
+The agent can take one of the following actions:
+- TREAT_NOW
+- MONITOR
+- WAIT
+
+### Reward Function
+- Correct critical decision → +10
+- Correct moderate decision → +5
+- Correct low priority decision → +2
+- Incorrect decision → -5
+- Penalty for long waiting time → -3
+
+### Episode Design
+Each episode represents a single triage decision, making it a one-step decision environment.
+
+## Hackathon Highlights
 
 - **Realistic Simulation**: Hospital resource management
 - **Explainable AI**: Clear decision reasoning
