@@ -3,7 +3,7 @@ title: Hospital Triage System
 emoji: 🏥
 colorFrom: red
 colorTo: blue
-sdk: docker
+sdk: gradio
 python_version: 3.10
 app_file: app.py
 pinned: true
@@ -11,19 +11,66 @@ license: mit
 tags:
 - healthcare
 - triage
-- fastapi
-- api
+- gradio
+- medical
+- ai
 - demo
-short_description: AI-powered hospital triage priority prediction
+short_description: AI-powered hospital triage priority assessment
 ---
 
-# Hospital OpenEnv API
+# 🏥 Hospital Triage System
 
-A comprehensive AI Hospital Triage System implementing OpenEnv interface with FastAPI. Features realistic patient prioritization using severity scoring (0-100), resource management, and reward-based learning.
+An AI-powered hospital triage system that assesses patient priority and recommends medical actions using a simple Gradio interface.
 
-## Quick Start
+## 🚀 Features
 
-The API is automatically deployed and available at: https://dhanyashri-tr-hospital-triege-system.hf.space
+- **AI-Powered Triage**: Analyzes patient vitals and pain levels
+- **Simple Interface**: Easy-to-use Gradio web UI
+- **Real-time Assessment**: Instant triage decisions
+- **Color-Coded Results**: Visual triage level indicators
+- **Mobile Friendly**: Responsive design for all devices
+
+## 📡 How to Use
+
+### Input Parameters
+- **Heart Rate**: Patient's pulse in beats per minute (30-200 bpm)
+- **Oxygen Saturation**: Blood oxygen level (70-100%)
+- **Pain Level**: Patient's self-reported pain (0-10 scale)
+
+### Triage Logic
+- **Score ≥ 25**: 🚨 **TREAT_NOW** (Critical - RED)
+- **Score ≥ 15**: 👁️ **MONITOR** (Moderate - YELLOW)
+- **Score < 15**: ⏰ **WAIT** (Stable - GREEN)
+
+## 🎮 Demo
+
+Visit the deployed Space to try the interactive triage assessment:
+- Enter patient vitals
+- Click "Assess Patient Priority"
+- Get instant triage recommendation
+
+## 🏗️ Technology Stack
+
+- **Gradio**: Modern web interface framework
+- **Python**: Core triage logic
+- **NumPy**: Numerical computations
+- **Hugging Face Spaces**: Instant deployment
+
+## 📋 Example Cases
+
+| Scenario | Heart Rate | Oxygen | Pain | Result |
+|----------|-------------|---------|--------|---------|
+| Critical Case | 110 | 88 | 8 | 🚨 TREAT_NOW |
+| Moderate Case | 85 | 95 | 4 | 👁️ MONITOR |
+| Stable Case | 70 | 98 | 2 | ⏰ WAIT |
+
+## ⚠️ Medical Disclaimer
+
+This is an AI demonstration tool for educational purposes only. Always consult qualified healthcare professionals for actual medical decisions and patient care.
+
+---
+
+**🏆 Built for Meta PyTorch OpenEnv Hackathon**
 
 ### API Endpoints
 
