@@ -21,11 +21,11 @@ tags:
 short_description: AI Hospital Triage System with OpenEnv interface
 ---
 
-# 🏥 Hospital OpenEnv API
+# Hospital OpenEnv API
 
 A comprehensive AI Hospital Triage System implementing OpenEnv interface with FastAPI. Features realistic patient prioritization using severity scoring (0-100), resource management, and reward-based learning.
 
-## 🚀 Quick Start
+## Quick Start
 
 The API is automatically deployed and available at: https://dhanyashri-tr-hospital-triege-system.hf.space
 
@@ -54,20 +54,20 @@ print(f"Reward: {result['reward']}")
 print(f"Done: {result['done']}")
 ```
 
-## ✨ Features
+## Features
 
-- 🔬 **Severity Score Normalization** (0-100)
-- 🚦 **Triage Categories** (RED/YELLOW/GREEN)
-- 🏗️ **Resource Management** (ICU/general beds, doctors)
-- ⚖️ **Balanced Reward System**
-- 🔄 **Queue Simulation**
-- 📊 **Explainable AI**
+- **Severity Score Normalization** (0-100)
+-  **Triage Categories** (RED/YELLOW/GREEN)
+- **Resource Management** (ICU/general beds, doctors)
+- **Balanced Reward System**
+- **Queue Simulation**
+- **Explainable AI**
 
-## 📊 Live Demo
+## Live Demo
 
 Visit the Space URL to interact with the live API and explore the comprehensive documentation.
 
-## 🎯 Key Features
+## Key Features
 
 ### Severity Scoring
 - Weighted formula: SPO2 (25%), systolic BP (20%), heart rate (15%), age (10%), symptoms (30%)
@@ -84,7 +84,7 @@ Visit the Space URL to interact with the live API and explore the comprehensive 
 - Strong penalties (-0.5 or lower) for incorrect actions
 - Resource violation penalties and waiting time penalties
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 Hospital_Triage_System/
@@ -97,7 +97,7 @@ Hospital_Triage_System/
 └── Dockerfile          # Deployment config
 ```
 
-## 🎮 Demo Usage
+## Demo Usage
 
 1. Visit the live Space
 2. Try the interactive API documentation
@@ -105,14 +105,14 @@ Hospital_Triage_System/
 4. Test TREAT_NOW, MONITOR, and WAIT actions
 5. View performance metrics
 
-## 🧠 AI Integration
+## AI Integration
 
 - Compatible with RL frameworks
 - Standard OpenEnv interface
 - Structured state representation
 - Calibrated reward signals
 
-## 🔧 Technologies Used
+## Technologies Used
 
 - **FastAPI**: Web framework and API
 - **OpenEnv**: Environment interface standard
@@ -121,7 +121,7 @@ Hospital_Triage_System/
 - **Uvicorn**: ASGI server
 - **Docker**: Containerization
 
-## 📈 Performance Metrics
+## Performance Metrics
 
 - Average reward per step
 - Total cumulative reward
@@ -129,7 +129,7 @@ Hospital_Triage_System/
 - Patients treated count
 - Termination analysis
 
-## 🏆 Hackathon Highlights
+##  Hackathon Highlights
 
 - **Realistic Simulation**: Hospital resource management
 - **Explainable AI**: Clear decision reasoning
@@ -137,7 +137,7 @@ Hospital_Triage_System/
 - **Comprehensive Testing**: Full verification suite
 - **OpenEnv Compatible**: Standard RL interface
 
-## 📝 License
+## License
 
 MIT License
 
