@@ -97,8 +97,9 @@ if st.button("🚀 Run Triage Assessment", type="primary", use_container_width=T
         st.write(f"**Pain Level:** {pain_level}/10")
         st.write(f"**Scoring Formula:** score = (heart_rate/10) + (100 - oxygen) + (pain*2)")
     
-    # Medical recommendation
-    st.info(f"**Medical Recommendation:** {decision.replace('🚨', '').replace('⚠️', '').replace('🟢', '').strip()} - {priority.lower()} priority case requiring immediate attention.")
+    # Medical recommendation with FIXED string replacement
+    clean_decision = decision.replace('🚨', '').replace('⚠️', '').replace('🟢', '').strip()
+    st.info(f"**Medical Recommendation:** {clean_decision} - {priority.lower()} priority case requiring immediate attention.")
 
 st.divider()
 
