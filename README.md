@@ -1,11 +1,14 @@
 ---
-title: AI Hospital Triage System
+title: Hospital Triage System
 emoji: 🏥
+colorFrom: blue
+colorTo: green
 sdk: streamlit
 app_file: app.py
+pinned: false
 ---
 
-# 🏥 AI Hospital Triage System
+# 🏥 Hospital Triage System
 
 An AI-powered patient triage assessment system designed for emergency medical care prioritization. Built for Meta PyTorch OpenEnv Hackathon.
 
@@ -49,10 +52,11 @@ This AI system helps emergency medical staff quickly assess patient priority bas
 
 ## 🏗️ Tech Stack
 
-- **Frontend**: Streamlit 1.35.0
+- **Frontend**: Streamlit 1.32.0
 - **Backend**: Python 3.10+
 - **Deployment**: Hugging Face Spaces
 - **Algorithm**: Custom triage scoring system
+- **Machine Learning**: scikit-learn, pandas, numpy
 
 ## 🚀 Quick Start
 
@@ -112,6 +116,7 @@ The scoring algorithm prioritizes:
 - **Purpose**: Demonstrate AI in medical triage systems
 - **Status**: Educational Prototype
 - **Technology**: Python, Streamlit, Machine Learning
+- **Dependencies**: Streamlit, pandas, numpy, scikit-learn
 
 ## 📱 Interface Features
 

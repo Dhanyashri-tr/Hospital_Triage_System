@@ -1,14 +1,22 @@
 import streamlit as st
+import pandas as pd
+import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score, classification_report
+import joblib
+import os
 
 # Set page configuration
 st.set_page_config(
-    page_title="AI Hospital Triage System",
+    page_title="Hospital Triage System",
     page_icon="🏥",
     layout="centered"
 )
 
 # Main title and description
-st.title("🏥 AI Hospital Triage System")
+st.title("🏥 Hospital Triage System")
 st.markdown("**Meta PyTorch OpenEnv Hackathon Project**")
 st.markdown("*AI-Powered Patient Priority Assessment for Emergency Medical Care*")
 
@@ -97,7 +105,7 @@ if st.button("🚀 Run Triage Assessment", type="primary", use_container_width=T
         st.write(f"**Pain Level:** {pain_level}/10")
         st.write(f"**Scoring Formula:** score = (heart_rate/10) + (100 - oxygen) + (pain*2)")
     
-    # Medical recommendation with FIXED string replacement
+    # Medical recommendation with fixed string replacement
     clean_decision = decision.replace('🚨', '').replace('⚠️', '').replace('🟢', '').strip()
     st.info(f"**Medical Recommendation:** {clean_decision} - {priority.lower()} priority case requiring immediate attention.")
 
